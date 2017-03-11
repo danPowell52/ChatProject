@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PeerActivity"></activity>
+        <activity android:name=".ChatActivity"></activity>
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>

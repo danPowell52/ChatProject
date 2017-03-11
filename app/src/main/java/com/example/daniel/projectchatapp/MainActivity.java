@@ -17,4 +17,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, PeerActivity.class);
         startActivity(intent);
     }
+
+    public void testChat(View view){
+        Intent intent = new Intent(this, ChatActivity.class);
+        startActivity(intent);
+    }
 }

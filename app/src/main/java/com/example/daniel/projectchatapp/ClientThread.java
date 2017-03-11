@@ -41,12 +41,10 @@ public class ClientThread extends Thread {
             StringBuilder message = new StringBuilder();
             Log.d("Payara","client running "+running);
             while(running.equals(true)){
-                line = in.readLine();
-                Log.d("Payara Client reader", message.toString());
-                //update any UI with messages received
-                if (line != null){
-                    message.append(line);
-                    Log.d("Payara Client reader", message.toString());
+
+                while((line = in.readLine()) != null){
+
+                    Log.d("Payara Client reader", line);
                 }
 
 

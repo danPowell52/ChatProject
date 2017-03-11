@@ -43,7 +43,7 @@ public class ServerThread extends Thread{
             StringBuilder message = new StringBuilder();
             Log.d("Payara","server running "+running);
             while(running.equals(true)){
-                Log.d("Payara","server running "+running);
+
                 while((line = in.readLine()) != null){
 
                     Log.d("Payara Server reader", line);
