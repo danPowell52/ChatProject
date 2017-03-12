@@ -1,5 +1,8 @@
 package com.example.daniel.projectchatapp;
 
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -21,6 +24,12 @@ public class ClientThread extends Thread {
     InputStream inputStream;
     Boolean running = true;
     Socket socket;
+    Intent broadcastIntent;
+    Context context;
+
+    public ClientThread(Context c){
+        context=c;
+    }
 
     @Override
     public void run(){
@@ -43,8 +52,10 @@ public class ClientThread extends Thread {
             while(running.equals(true)){
 
                 while((line = in.readLine()) != null){
-
-                    Log.d("Payara Client reader", line);
+                    broadcastIntent = new Intent().putExtra("message",line);
+                    broadcastIntent.setAction("chatapp.received.message");
+                    Log.d("Payara Server reader", line);
+                    context.sendBroadcast(broadcastIntent);
                 }
 
 
@@ -61,7 +72,7 @@ public class ClientThread extends Thread {
         }
     }
 
-    public void write(){
+    public void write(String message){
         currentThread().getId();
         Log.d("Payara","client write called "+currentThread().getId() + "  "+ currentThread().getName());
         if(outputStream ==null|| inputStream ==null){
@@ -71,7 +82,7 @@ public class ClientThread extends Thread {
             Log.d("Payara", "wrting try");
             try {
                 String str = "This is a String ~ GoGoGo";
-                InputStream inputStream = new ByteArrayInputStream(str.getBytes());
+                InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
 
                 OutputStream outputStream = socket.getOutputStream();

@@ -11,5 +11,31 @@ public class Message {
         return true;
     }
 
+    public Message(){
+
+    }
+
+    public Message(String message, Boolean mine){
+        body=message;
+        isMine=mine;
+    }
+
+    public void setMessage(String message){
+        body = message;
+    }
+
+    public String getMessage(){
+        return body;
+    }
+
+    public void setIsMine(Boolean mine){
+        isMine = mine;
+    }
+
+    public Boolean getIsMine(){
+        return isMine;
+    }
+
+
 
 }

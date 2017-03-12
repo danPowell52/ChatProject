@@ -1,5 +1,7 @@
 package com.example.daniel.projectchatapp;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -21,6 +23,12 @@ public class ServerThread extends Thread{
     InputStream inputStream;
     Boolean running = true;
     Boolean connected = false;
+    Context context;
+    Intent broadcastIntent;
+
+    public ServerThread(Context c){
+        context=c;
+    }
 
     @Override
     public void run(){
@@ -45,8 +53,10 @@ public class ServerThread extends Thread{
             while(running.equals(true)){
 
                 while((line = in.readLine()) != null){
-
+                    broadcastIntent = new Intent().putExtra("message",line);
+                    broadcastIntent.setAction("chatapp.received.message");
                     Log.d("Payara Server reader", line);
+                    context.sendBroadcast(broadcastIntent);
                 }
 
                 //update any UI with messages received
@@ -64,7 +74,7 @@ public class ServerThread extends Thread{
 
     }
 
-    public void write(){
+    public void write(String message){
         // convert String into InputStream
         currentThread().getId();
         Log.d("Payara","server write called "+currentThread().getId() + "  "+ currentThread().getName());
@@ -74,8 +84,8 @@ public class ServerThread extends Thread{
         } else {
             Log.d("Payara", "wrting try");
             try {
-                String str = "This is a String ~ GoGoGo";
-                InputStream inputStream = new ByteArrayInputStream(str.getBytes());
+                //String str = "This is a String ~ GoGoGo";
+                InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
 
                 OutputStream outputStream = client.getOutputStream();

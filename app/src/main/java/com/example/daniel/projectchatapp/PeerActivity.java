@@ -1,5 +1,7 @@
 package com.example.daniel.projectchatapp;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +39,8 @@ public class PeerActivity extends AppCompatActivity {
     Boolean owner;
     Intent intent;
     Intent client;
+    FragmentManager fm;
+    Fragment fragment;
 
 
     @Override
@@ -48,6 +52,15 @@ public class PeerActivity extends AppCompatActivity {
         textView.setText("wfif page");
         layout =(ViewGroup) findViewById(R.id.peer_activity);
         layout.addView(textView);
+
+
+        fm = getFragmentManager();
+        fragment = fm.findFragmentById(R.id.frag_list);
+                fm.beginTransaction()
+                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                .hide(fragment)
+                .commit();
+
 
         intent = new Intent(this, ChatServer.class);
         client = new Intent(this, ChatClient.class);
@@ -136,7 +149,10 @@ public class PeerActivity extends AppCompatActivity {
                 //success logic
                 Log.d("Payara", "Connection Started");
                 textView.setText("WE HAVE LIFTOFF");
-
+                fm.beginTransaction()
+                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                        .show(fragment)
+                        .commit();
 
                 //ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 //NetworkInfo networkInfo = cm.getActiveNetworkInfo();
@@ -217,4 +233,6 @@ public class PeerActivity extends AppCompatActivity {
         }
 
     }
+
+
 }

@@ -37,7 +37,7 @@ public class ChatClient extends Service {
     @Override
     public void onCreate() {
         Log.d("Payara","client create");
-        socketControl = new ClientThread();
+        socketControl = new ClientThread(this);
         socketControl.start();
     }
 
@@ -45,7 +45,7 @@ public class ChatClient extends Service {
     @Override
     public int onStartCommand(Intent intent, int flag, int id) {
         Log.d("Payara","client write");
-        socketControl.write();
+        socketControl.write(intent.getStringExtra("message"));
 
 
         return START_STICKY;

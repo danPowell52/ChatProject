@@ -10,6 +10,13 @@ import android.widget.ListView;
  */
 
 public class ChatActivity extends AppCompatActivity {
+
+    public String hello = "hello";
+
+    public String getHello(){
+        return hello;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

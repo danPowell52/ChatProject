@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +30,7 @@ public class ChatServer extends Service {
     @Override
     public void onCreate(){
         Log.d("Payara","Server Create");
-        socketControl = new ServerThread();
+        socketControl = new ServerThread(this);
         socketControl.start();
     }
 
@@ -38,7 +39,8 @@ public class ChatServer extends Service {
 
         Log.d("Payara","Server Write");
         if (socketControl.getConnected()){
-            socketControl.write();
+            socketControl.write(intent.getStringExtra("Payara"));
+
         }
 
 

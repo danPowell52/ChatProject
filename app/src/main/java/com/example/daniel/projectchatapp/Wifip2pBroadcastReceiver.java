@@ -1,5 +1,6 @@
 package com.example.daniel.projectchatapp;
 
+import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -89,7 +90,7 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
                             mActivity.setOwner(true);
                             mActivity.startService(server);
 
-                            mActivity.startService(server);
+
 
                         } else {
                             mActivity.setOwner(false);
@@ -106,6 +107,9 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Respond to this device's wifi state changing
             Log.d("Payara", "action changed");
+        } else if (action == "chatapp.message.received"){
+            ChatFragment hello = (ChatFragment)mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
+            hello.receiveMessage(intent.getStringExtra("message"));
         }
 
     }

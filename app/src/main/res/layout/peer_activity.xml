@@ -14,4 +14,11 @@
         android:layout_height="wrap_content"
         android:text="sned"
         android:onClick="sendMessage"/>
+    <fragment
+        class="com.example.daniel.projectchatapp.ChatFragment"
+        android:id="@+id/frag_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!-- Preview: layout=@layout/row_devices -->
+    </fragment>
 </LinearLayout>
