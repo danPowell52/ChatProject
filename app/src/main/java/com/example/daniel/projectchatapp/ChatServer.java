@@ -27,6 +27,10 @@ public class ChatServer extends Service {
         return null;
     }
 
+    public void setMessage(){
+        Log.d("Payara","callback") ;
+    }
+
     @Override
     public void onCreate(){
         Log.d("Payara","Server Create");
@@ -39,7 +43,7 @@ public class ChatServer extends Service {
 
         Log.d("Payara","Server Write");
         if (socketControl.getConnected()){
-            socketControl.write(intent.getStringExtra("Payara"));
+            socketControl.write(intent.getStringExtra("message"));
 
         }
 

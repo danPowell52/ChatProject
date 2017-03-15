@@ -23,10 +23,10 @@ public class ServerThread extends Thread{
     InputStream inputStream;
     Boolean running = true;
     Boolean connected = false;
-    Context context;
+    ChatServer context;
     Intent broadcastIntent;
 
-    public ServerThread(Context c){
+    public ServerThread(ChatServer c){
         context=c;
     }
 
@@ -49,15 +49,22 @@ public class ServerThread extends Thread{
                             new InputStreamReader(client.getInputStream()));
             String line = "";
             StringBuilder message = new StringBuilder();
-            Log.d("Payara","server running "+running);
-            while(running.equals(true)){
 
-                while((line = in.readLine()) != null){
-                    broadcastIntent = new Intent().putExtra("message",line);
-                    broadcastIntent.setAction("chatapp.received.message");
-                    Log.d("Payara Server reader", line);
-                    context.sendBroadcast(broadcastIntent);
+            Log.d("Payara","server running "+running);
+            int count = 0;
+            Boolean ready;
+            while(running.equals(true)){
+                //Log.d("Payara","server running "+in.ready());
+                //Log.d("Payara Server reader","hello");
+                count ++;
+                ready = in.ready();
+                while(ready.equals(true)){
+                    Log.d("Payara","server ready "+in.ready());
+                    Log.d("Payara","server read "+in.readLine());
+                    ready=false;
                 }
+               // }
+
 
                 //update any UI with messages received
                 //Log.d("Payara Server reader", "helloes");
@@ -68,10 +75,10 @@ public class ServerThread extends Thread{
             outputStream.close();
             inputStream.close();
         } catch (IOException e) {
-            Log.d("Payara","server failed");
+            Log.d("Payara", "server failed");
             e.printStackTrace();
-        }
 
+        }
     }
 
     public void write(String message){

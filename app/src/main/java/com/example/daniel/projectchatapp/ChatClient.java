@@ -44,7 +44,8 @@ public class ChatClient extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flag, int id) {
-        Log.d("Payara","client write");
+        Log.d("Payara","client write " +intent.toString());
+
         socketControl.write(intent.getStringExtra("message"));
 
 

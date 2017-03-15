@@ -74,9 +74,9 @@ public class ChatFragment extends Fragment implements OnClickListener {
         messages.add(message);
         adapter.notifyDataSetChanged();
         Intent sentMessage = new Intent(activity, ChatServer.class);
-        sentMessage.putExtra("message",msg_edittext.getEditableText().toString());
+        sentMessage.putExtra("message",msg_edittext.getEditableText().toString()+"\n");
         Intent sentMessageClient = new Intent(activity, ChatClient.class);
-        sentMessage.putExtra("message",msg_edittext.getEditableText().toString());
+        sentMessageClient.putExtra("message",msg_edittext.getEditableText().toString()+"\n");
 
         if(owner.equals(true)){
             Log.d("Payara","message server");
