@@ -60,7 +60,17 @@ public class ServerThread extends Thread{
                 ready = in.ready();
                 while(ready.equals(true)){
                     Log.d("Payara","server ready "+in.ready());
-                    Log.d("Payara","server read "+in.readLine());
+                    //Log.d("Payara","server read "+in.readLine());
+                    line = in.readLine();
+                    /**
+                    while((line = in.readLine()) !=null){
+                        Log.d("Payara","server read the line"+line);
+                    }
+                     **/
+                    //line = in.readLine();
+                    broadcastIntent = new Intent().putExtra("message",line);
+                    broadcastIntent.setAction("chatapp.received.message");
+                    context.sendBroadcast(broadcastIntent);
                     ready=false;
                 }
                // }
@@ -92,10 +102,15 @@ public class ServerThread extends Thread{
             Log.d("Payara", "wrting try");
             try {
                 //String str = "This is a String ~ GoGoGo";
+                if (message ==null){
+                    //everynow and then the connection refreshes and sends null message so stop it here
+                    return;
+                }
+
                 InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
 
-                OutputStream outputStream = client.getOutputStream();
+
                 int len;
                 while ((len = inputStream.read(byteVar)) != -1) {
                     outputStream.write(byteVar, 0, len);

@@ -49,6 +49,28 @@ public class ClientThread extends Thread {
             String line = "";
             StringBuilder message = new StringBuilder();
             Log.d("Payara","client running "+running);
+            Boolean ready;
+            while(running.equals(true)){
+                //Log.d("Payara","server running "+in.ready());
+                //Log.d("Payara Server reader","hello");
+
+                ready = in.ready();
+                while(ready.equals(true)){
+                    Log.d("Payara","client ready "+in.ready());
+                    line = in.readLine();
+                    broadcastIntent = new Intent().putExtra("message",line);
+                    broadcastIntent.setAction("chatapp.received.message");
+                    context.sendBroadcast(broadcastIntent);
+                    ready=false;
+                }
+                // }
+
+
+                //update any UI with messages received
+                //Log.d("Payara Server reader", "helloes");
+
+            }
+            /**
             while(running.equals(true)){
 
                 while((line = in.readLine()) != null){
@@ -59,7 +81,7 @@ public class ClientThread extends Thread {
                 }
 
 
-            }
+            } **/
 
             Log.d("Payara","client ended");
             outputStream.close();
@@ -82,6 +104,9 @@ public class ClientThread extends Thread {
             Log.d("Payara", "wrting try");
             try {
                 String str = "This is a String ~ GoGoGo";
+                if (message ==null){
+                    return;
+                }
                 InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
 

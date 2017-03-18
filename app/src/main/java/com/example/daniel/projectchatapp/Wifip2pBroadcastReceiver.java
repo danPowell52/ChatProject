@@ -107,7 +107,8 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Respond to this device's wifi state changing
             Log.d("Payara", "action changed");
-        } else if (action == "chatapp.message.received"){
+        } else if (action == "chatapp.received.message"){
+            Log.d("Payara","intent message received");
             ChatFragment hello = (ChatFragment)mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
             hello.receiveMessage(intent.getStringExtra("message"));
         }

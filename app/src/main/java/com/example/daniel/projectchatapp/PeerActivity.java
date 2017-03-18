@@ -47,6 +47,12 @@ public class PeerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.peer_activity);
+        fm = getFragmentManager();
+        fragment = fm.findFragmentById(R.id.frag_list);
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                .hide(fragment)
+                .commit();
         textView = new TextView(this);
         textView.setTextSize(40);
         textView.setText("wfif page");
@@ -54,12 +60,7 @@ public class PeerActivity extends AppCompatActivity {
         layout.addView(textView);
 
 
-        fm = getFragmentManager();
-        fragment = fm.findFragmentById(R.id.frag_list);
-                fm.beginTransaction()
-                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
-                .hide(fragment)
-                .commit();
+
 
 
         intent = new Intent(this, ChatServer.class);
@@ -70,6 +71,7 @@ public class PeerActivity extends AppCompatActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        mIntentFilter.addAction("chatapp.received.message");
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -217,6 +219,7 @@ public class PeerActivity extends AppCompatActivity {
         owner = newOwner;
     }
 
+    /**
     public void sendMessage(View view){
         sendMessage();
     }
@@ -233,6 +236,7 @@ public class PeerActivity extends AppCompatActivity {
         }
 
     }
+     **/
 
 
 }
