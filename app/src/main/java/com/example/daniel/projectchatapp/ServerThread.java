@@ -9,6 +9,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -53,11 +55,22 @@ public class ServerThread extends Thread{
             Log.d("Payara","server running "+running);
             int count = 0;
             Boolean ready;
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            Object object;
+
             while(running.equals(true)){
                 //Log.d("Payara","server running "+in.ready());
                 //Log.d("Payara Server reader","hello");
                 count ++;
                 ready = in.ready();
+                EncryptionManager encryptionManager = new EncryptionManager();
+                encryptionManager.generateKey();
+
+                while((object = objectInputStream.readObject()) != null){
+                    Message newMessage = (Message)object;
+                    Log.d("Payara", newMessage.getMessage());
+                }
+                /**
                 while(ready.equals(true)){
                     Log.d("Payara","server ready "+in.ready());
                     //Log.d("Payara","server read "+in.readLine());
@@ -68,11 +81,14 @@ public class ServerThread extends Thread{
                     }
                      **/
                     //line = in.readLine();
+                /**
                     broadcastIntent = new Intent().putExtra("message",line);
                     broadcastIntent.setAction("chatapp.received.message");
                     context.sendBroadcast(broadcastIntent);
                     ready=false;
+
                 }
+                 **/
                // }
 
 
@@ -88,6 +104,8 @@ public class ServerThread extends Thread{
             Log.d("Payara", "server failed");
             e.printStackTrace();
 
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -109,12 +127,14 @@ public class ServerThread extends Thread{
 
                 InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
-
-
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(new Message(message, false));
+                /**
                 int len;
                 while ((len = inputStream.read(byteVar)) != -1) {
                     outputStream.write(byteVar, 0, len);
                 }
+                 **/
             } catch (IOException e) {
 
             }

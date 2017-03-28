@@ -10,6 +10,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -50,10 +52,23 @@ public class ClientThread extends Thread {
             StringBuilder message = new StringBuilder();
             Log.d("Payara","client running "+running);
             Boolean ready;
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            Object object;
             while(running.equals(true)){
                 //Log.d("Payara","server running "+in.ready());
                 //Log.d("Payara Server reader","hello");
+                EncryptionManager encryptionManager = new EncryptionManager();
+                encryptionManager.generateKey();
 
+
+                while((object = objectInputStream.readObject()) != null){
+                    Message newMessage = (Message)object;
+                    Log.d("Payara", newMessage.getMessage());
+                }
+
+                /**
+                 *
+                 *
                 ready = in.ready();
                 while(ready.equals(true)){
                     Log.d("Payara","client ready "+in.ready());
@@ -63,6 +78,7 @@ public class ClientThread extends Thread {
                     context.sendBroadcast(broadcastIntent);
                     ready=false;
                 }
+                 **/
                 // }
 
 
@@ -91,6 +107,8 @@ public class ClientThread extends Thread {
         } catch (IOException e) {
             Log.d("Payara","client failed");
             e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -111,10 +129,14 @@ public class ClientThread extends Thread {
                 byte byteVar[] = new byte[1024];
 
                 OutputStream outputStream = socket.getOutputStream();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(new Message(message, false));
+                /**
                 int len;
                 while ((len = inputStream.read(byteVar)) != -1) {
                     outputStream.write(byteVar, 0, len);
                 }
+                 **/
                 Log.d("Payara","Client Message Sent");
             } catch (IOException e) {
 

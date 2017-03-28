@@ -1,10 +1,12 @@
 package com.example.daniel.projectchatapp;
 
+import java.io.Serializable;
+
 /**
  * Created by Daniel on 09/03/2017.
  */
 
-public class Message {
+public class Message implements Serializable{
     public String body ="hello world";
     public Boolean isMine = true;
     public Boolean isMine(){
