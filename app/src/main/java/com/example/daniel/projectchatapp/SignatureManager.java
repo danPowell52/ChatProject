@@ -1,5 +1,7 @@
 package com.example.daniel.projectchatapp;
 
+import android.util.Log;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,16 +31,29 @@ public class SignatureManager {
 
     }
 
-    public void getPublicKey(){
-
+    public PublicKey getPublicKey(){
+        return publicKey;
     }
 
     public PublicKey getReceivedPublic() {
         return receivedPublic;
     }
 
-    public void setReceivedPublic(PublicKey receivedPublic) {
-        this.receivedPublic = receivedPublic;
+    public void setReceivedPublic(byte[] receivedPublic) {
+        KeyFactory keyFactory = null;
+        try {
+            keyFactory = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(receivedPublic);
+            PublicKey pubKey =
+                    keyFactory.generatePublic(pubKeySpec);
+            this.receivedPublic = pubKey;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+
+        //this.receivedPublic = receivedPublic;
     }
 
     public void setPrivateKey(PrivateKey privateKey) {
@@ -50,6 +65,7 @@ public class SignatureManager {
     }
 
     public void generateKeys(){
+        Log.d("Payara","generating keys");
         KeyPairGenerator keyGenerator = null;
         try {
             keyGenerator = KeyPairGenerator.getInstance("RSA");
@@ -63,7 +79,7 @@ public class SignatureManager {
 
     }
 
-    public void generateSig(String message){
+    public byte[] generateSig(byte[] message){
         try {
 
             Signature signature = Signature.getInstance("SHA256withRSA");
@@ -71,36 +87,35 @@ public class SignatureManager {
 
 
 
-            signature.update(message.getBytes());
+            signature.update(message);
             byte[] realSig = signature.sign();
             byte[] key = publicKey.getEncoded();
+            return realSig;
             //verifySig(publicKey.getEncoded(), realSig);
         }catch(Exception e){
             System.out.println("fuck boy 1 "+ e);
 
         }
+        return null;
     }
 
-    public void verifySig(byte[] key, String message,byte[] sig){
+    public Boolean verifySig( byte[] message,byte[] sig){
 
         try {
             //System.out.println(key.getFormat());
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(key);
-            PublicKey pubKey =
-                    keyFactory.generatePublic(pubKeySpec);
+
             Signature signature = Signature.getInstance("SHA256withRSA");
-            signature.initVerify(pubKey);
-            signature.update(message.getBytes());
+            signature.initVerify(receivedPublic);
+            signature.update(message);
             boolean verifies = signature.verify(sig);
             System.out.println("signature verifies: " + verifies);
-
+            return verifies;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             System.out.println("fuck boy 2 "+ e);
-        }  catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-            System.out.println("fuck boy 3 "+ e);
+        //}  catch (InvalidKeySpecException e) {
+        //    e.printStackTrace();
+        //    System.out.println("fuck boy 3 "+ e);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             System.out.println("fuck boy 4 "+ e);
@@ -108,5 +123,6 @@ public class SignatureManager {
             e.printStackTrace();
             System.out.println("fuck boy 5 "+ e);
         }
+        return false;
     }
 }

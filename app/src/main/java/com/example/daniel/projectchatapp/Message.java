@@ -8,7 +8,18 @@ import java.io.Serializable;
 
 public class Message implements Serializable{
     public String body ="hello world";
+    public byte[] encryptedMessage;
     public Boolean isMine = true;
+    byte[] signature;
+
+    public void setSignature(byte[] signature){
+        this.signature = signature;
+    }
+
+    public byte[] getSignature(){
+        return signature;
+    }
+
     public Boolean isMine(){
         return true;
     }
@@ -38,6 +49,11 @@ public class Message implements Serializable{
         return isMine;
     }
 
+    public byte[] getEncryptedMessage() {
+        return encryptedMessage;
+    }
 
-
+    public void setEncryptedMessage(byte[] encryptedMessage) {
+        this.encryptedMessage = encryptedMessage;
+    }
 }

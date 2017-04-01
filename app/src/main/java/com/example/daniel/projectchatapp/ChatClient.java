@@ -46,7 +46,10 @@ public class ChatClient extends Service {
     public int onStartCommand(Intent intent, int flag, int id) {
         Log.d("Payara","client write " +intent.toString());
 
-        socketControl.write(intent.getStringExtra("message"));
+        SendMessage sendMessage = new SendMessage();
+
+        sendMessage.execute(socketControl,intent.getStringExtra("message"));
+        //socketControl.write(intent.getStringExtra("message"));
 
 
         return START_STICKY;

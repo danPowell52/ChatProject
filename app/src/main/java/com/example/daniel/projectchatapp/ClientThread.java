@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -24,6 +25,11 @@ public class ClientThread extends Thread {
     private int port = 8888;
     OutputStream outputStream;
     InputStream inputStream;
+    ObjectOutputStream objectOutputStream;
+    ObjectInputStream objectInputStream;
+    EncryptionManager encryptionManager;
+    SignatureManager signatureManager;
+    KeyMessage newKeys;
     Boolean running = true;
     Socket socket;
     Intent broadcastIntent;
@@ -35,6 +41,7 @@ public class ClientThread extends Thread {
 
     @Override
     public void run(){
+        Log.d("Payara","server write called "+currentThread().getId() + "  "+ currentThread().getName());
         //initialise connection and lsiten
         socket = new Socket();
         try {
@@ -44,26 +51,56 @@ public class ClientThread extends Thread {
             //listen for messages
             outputStream = socket.getOutputStream();
 
+            objectOutputStream = new ObjectOutputStream(outputStream);
+
             inputStream = socket.getInputStream();
+            //note object streams cant be reread form the same stream or the stream will become corrupted
+            objectInputStream = new ObjectInputStream(inputStream);
             BufferedReader in =
                     new BufferedReader(
                             new InputStreamReader(socket.getInputStream()));
             String line = "";
             StringBuilder message = new StringBuilder();
+            Log.d("Payara","SETTING SECURITY NUMBER 1");
             Log.d("Payara","client running "+running);
             Boolean ready;
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+
             Object object;
+
+            Boolean securitySet=false;
+            encryptionManager = new EncryptionManager();
+            //encryptionManager.generateKey();
+            signatureManager = new SignatureManager();
+            signatureManager.generateKeys();
+            Log.d("Payara","SETTING SECURITY");
+
+
+
             while(running.equals(true)){
                 //Log.d("Payara","server running "+in.ready());
                 //Log.d("Payara Server reader","hello");
-                EncryptionManager encryptionManager = new EncryptionManager();
-                encryptionManager.generateKey();
 
 
                 while((object = objectInputStream.readObject()) != null){
-                    Message newMessage = (Message)object;
-                    Log.d("Payara", newMessage.getMessage());
+
+                    if (securitySet.equals(false)){
+                        newKeys = (KeyMessage)object;
+                        encryptionManager.generateKey(new BigInteger(newKeys.getP()), new BigInteger(newKeys.getG()));
+                        encryptionManager.genSecret(newKeys.getDHkey());
+                        KeyMessage keyMessage = new KeyMessage();
+                        keyMessage.setDHkey(encryptionManager.getPub().getEncoded());
+                        keyMessage.setRSAkey(signatureManager.getPublicKey().getEncoded());
+                        signatureManager.setReceivedPublic(newKeys.getRSAkey());
+                        write(keyMessage);
+                        securitySet = true;
+                        Log.d("Payara", "security set");
+                    } else {
+                        Message newMessage = (Message)object;
+                        if(signatureManager.verifySig(newMessage.getEncryptedMessage(), newMessage.getSignature())){
+                            newMessage.setMessage(encryptionManager.receiveMessage(newMessage.getEncryptedMessage()));
+                        }
+                        Log.d("Payara", newMessage.getMessage());
+                    }
                 }
 
                 /**
@@ -112,6 +149,20 @@ public class ClientThread extends Thread {
         }
     }
 
+    public void write(KeyMessage keys){
+
+
+        try {
+            Log.d("Payara","sending keys");
+
+            objectOutputStream.writeObject(keys);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void write(String message){
         currentThread().getId();
         Log.d("Payara","client write called "+currentThread().getId() + "  "+ currentThread().getName());
@@ -127,10 +178,11 @@ public class ClientThread extends Thread {
                 }
                 InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
-
-                OutputStream outputStream = socket.getOutputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(new Message(message, false));
+                Message sendMessage = new Message();
+                sendMessage.setEncryptedMessage(encryptionManager.sendMessage(message.getBytes()));
+                sendMessage.setSignature(signatureManager.generateSig(sendMessage.getEncryptedMessage()));
+                objectOutputStream.writeObject(sendMessage);
+                objectOutputStream.flush();
                 /**
                 int len;
                 while ((len = inputStream.read(byteVar)) != -1) {
