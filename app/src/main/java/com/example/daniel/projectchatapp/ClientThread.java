@@ -98,6 +98,9 @@ public class ClientThread extends Thread {
                         Message newMessage = (Message)object;
                         if(signatureManager.verifySig(newMessage.getEncryptedMessage(), newMessage.getSignature())){
                             newMessage.setMessage(encryptionManager.receiveMessage(newMessage.getEncryptedMessage()));
+                            broadcastIntent = new Intent().putExtra("message",newMessage.getMessage());
+                            broadcastIntent.setAction("chatapp.received.message");
+                            context.sendBroadcast(broadcastIntent);
                         }
                         Log.d("Payara", newMessage.getMessage());
                     }
@@ -136,9 +139,9 @@ public class ClientThread extends Thread {
 
             } **/
 
+
             Log.d("Payara","client ended");
-            outputStream.close();
-            inputStream.close();
+
 
 
         } catch (IOException e) {
@@ -146,7 +149,20 @@ public class ClientThread extends Thread {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            Log.d("Payara","CLosing in the finally");
+            try {
+                socket.close();
+                objectInputStream.close();
+                objectOutputStream.close();
+                outputStream.close();
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
+
     }
 
     public void write(KeyMessage keys){

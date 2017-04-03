@@ -6,13 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pGroup;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +31,8 @@ public class PeerActivity extends AppCompatActivity {
     IntentFilter mIntentFilter;
     TextView textView;
     ViewGroup layout;
-    WifiP2pDevice connector;
+    WifiP2pDevice deviceToConnectTo;
+    ArrayList<WifiP2pDevice> listOfConnectedDevices = new ArrayList<>();
     Boolean owner;
     Intent intent;
     Intent client;
@@ -126,7 +123,7 @@ public class PeerActivity extends AppCompatActivity {
                 peerList.append(device);
             }
             textView.setText(peerList);
-            connector = peers.get(0);
+            deviceToConnectTo = peers.get(0);
             //connect(peers.get(0));
             //group();
 
@@ -135,10 +132,10 @@ public class PeerActivity extends AppCompatActivity {
     }
 
     public void connect(View view){
-        connect(connector);
+        connect(deviceToConnectTo);
     }
 
-    public void connect(WifiP2pDevice device){
+    public void connect(final WifiP2pDevice device){
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
@@ -150,6 +147,8 @@ public class PeerActivity extends AppCompatActivity {
             public void onSuccess() {
                 //success logic
                 Log.d("Payara", "Connection Started");
+                listOfConnectedDevices.add(device);
+                Log.d("Payara", "added devices " + listOfConnectedDevices.contains(device));
                 textView.setText("WE HAVE LIFTOFF");
                 fm.beginTransaction()
                         .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
@@ -213,6 +212,10 @@ public class PeerActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public ArrayList getConnectedDevices(){
+        return listOfConnectedDevices;
     }
 
     public void setOwner(Boolean newOwner){

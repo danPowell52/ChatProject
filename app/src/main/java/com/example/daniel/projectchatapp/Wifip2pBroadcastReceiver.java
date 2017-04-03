@@ -25,6 +25,9 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager.Channel mChannel;
     private PeerActivity mActivity;
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
+    private List<WifiP2pDevice> connectedDevices = new ArrayList<WifiP2pDevice>();
+
+    Boolean reconnect = false;
 
 
 
@@ -76,10 +79,12 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
 
             Log.d("Payara", "netowrk info "+networkInfo.isConnected());
             Log.d("Payara", "netowrk info "+networkInfo.toString());
+            final Intent server = new Intent(mActivity, ChatServer.class);
+            final Intent client = new Intent(mActivity, ChatClient.class);
             if (networkInfo.isConnected()) {
                 Log.d("Payara", "connected in receiver");
-                final Intent server = new Intent(mActivity, ChatServer.class);
-                final Intent client = new Intent(mActivity, ChatClient.class);
+                connectedDevices = mActivity.getConnectedDevices();
+
                 mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
 
                     @Override
@@ -102,13 +107,27 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
                     }
                 });
             } else {
-                Log.d("Payara", "disconnected in receiver");
+                Log.d("Payara", "disconnected in receiver");//so close services and threads
+                mActivity.stopService(server);
+                mActivity.stopService(client);
+
+                if (!mActivity.getConnectedDevices().isEmpty()){//if the app still wants to connect, search for the peer again
+                    if(!networkInfo.isConnected()){
+                        Log.d("Payara","searching in receiver");
+                        //set boolean to true so that the peer finder knows it should re-connect
+                        reconnect = true;
+                        mActivity.search();
+                    }
+                }
+
+
             }
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Respond to this device's wifi state changing
             Log.d("Payara", "action changed");
         } else if (action == "chatapp.received.message"){
             Log.d("Payara","intent message received");
+            //less coupled way to work
             ChatFragment hello = (ChatFragment)mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
             hello.receiveMessage(intent.getStringExtra("message"));
         }
@@ -119,17 +138,28 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onPeersAvailable(WifiP2pDeviceList peerList) {
-
+            Log.d("Payara","Requesting peers");
             List<WifiP2pDevice> refreshedPeers = new ArrayList<>();
             refreshedPeers.addAll(peerList.getDeviceList());
             //Log.d("Payara", peerList.getDeviceList().toString());
-            for (WifiP2pDevice ddevice : peers){
-                //Log.d("payara", ddevice.deviceName);
+            for (WifiP2pDevice ddevice : refreshedPeers){
+                Log.d("payara", ddevice.deviceName);
+                //if the list contains a device we 'should' be connected to reconnect(eg out of range)
+
+                if (connectedDevices.contains(ddevice)&& reconnect){
+                    Log.d("Payara","reconnecting");
+                    mActivity.connect(ddevice);
+                    reconnect = false;
+                }
+
+
                 //Log.d("payara2", ddevice.toString());
             }
+            //replace old list wiht the new set of peers
             if (!refreshedPeers.equals(peers)) {
                 peers.clear();
                 peers.addAll(refreshedPeers);
+
 
                 // If an AdapterView is backed by this data, notify it
                 // of the change.  For instance, if you have a ListView of

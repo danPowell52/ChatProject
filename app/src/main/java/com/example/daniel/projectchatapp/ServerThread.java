@@ -35,6 +35,7 @@ public class ServerThread extends Thread{
     Intent broadcastIntent;
     BigInteger p;
     BigInteger g;
+    ServerSocket serverSocket;
 
     public ServerThread(ChatServer c){
         context=c;
@@ -42,12 +43,12 @@ public class ServerThread extends Thread{
 
     @Override
     public void run(){
-        ServerSocket serverSocket = null;
+        serverSocket = null;
         Log.d("Payara","server write called "+currentThread().getId() + "  "+ currentThread().getName());
         try {
             serverSocket = new ServerSocket(8888);
             Log.d("Payara","before accept");
-            Socket client = serverSocket.accept();
+            client = serverSocket.accept();
             Log.d("Payara","after accept");
             int bitLength = 512; // 512 bits
             SecureRandom rnd = new SecureRandom();
@@ -108,6 +109,10 @@ public class ServerThread extends Thread{
                         Message newMessage = (Message)object;
                         if(signatureManager.verifySig(newMessage.getEncryptedMessage(), newMessage.getSignature())){
                             newMessage.setMessage(encryptionManager.receiveMessage(newMessage.getEncryptedMessage()));
+                            broadcastIntent = new Intent().putExtra("message",newMessage.getMessage());
+                            broadcastIntent.setAction("chatapp.received.message");
+                            context.sendBroadcast(broadcastIntent);
+
                         }
 
 
@@ -143,17 +148,32 @@ public class ServerThread extends Thread{
 
             }
 
+
+
             Log.d("Payara","server ended");
-            outputStream.close();
-            inputStream.close();
         } catch (IOException e) {
             Log.d("Payara", "server failed");
             e.printStackTrace();
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            Log.d("Payara","CLosing in the finally");
+            try {
+                client.close();
+                serverSocket.close();
+                objectInputStream.close();
+                objectOutputStream.close();
+                outputStream.close();
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
     }
+
+
 
     public void write(KeyMessage keys){
 

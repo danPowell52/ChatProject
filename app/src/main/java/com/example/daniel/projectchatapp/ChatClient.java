@@ -57,6 +57,7 @@ public class ChatClient extends Service {
 
     @Override
     public void onDestroy() {
+        Log.d("Payara", " CHat Service Destroyed");
         socketControl.end();
     }
 
