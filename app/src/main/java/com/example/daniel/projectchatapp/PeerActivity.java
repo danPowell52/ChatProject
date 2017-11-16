@@ -155,6 +155,7 @@ public class PeerActivity extends AppCompatActivity {
                         .show(fragment)
                         .commit();
 
+
                 //ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 //NetworkInfo networkInfo = cm.getActiveNetworkInfo();
                 //Log.d("Payara","networkInfo "+ networkInfo);
@@ -219,9 +220,15 @@ public class PeerActivity extends AppCompatActivity {
     }
 
     public void setOwner(Boolean newOwner){
+
         owner = newOwner;
+        ChatFragment chatFragment = (ChatFragment)fragment;
+        chatFragment.setOwner();
     }
 
+    public void disconnect(View view){
+        listOfConnectedDevices.clear();
+    }
     /**
     public void sendMessage(View view){
         sendMessage();

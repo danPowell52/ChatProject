@@ -3,7 +3,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <fragment
-        class="com.example.daniel.projectchatapp.ChatFragment"
+        class="com.example.daniel.projectchatapp.WifiChatFragment"
         android:id="@+id/frag_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent">

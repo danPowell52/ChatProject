@@ -38,6 +38,7 @@ public class ChatClient extends Service {
     public void onCreate() {
         Log.d("Payara","client create");
         socketControl = new ClientThread(this);
+        socketControl.setAddress("192.168.49.1");
         socketControl.start();
     }
 
@@ -48,7 +49,8 @@ public class ChatClient extends Service {
 
         SendMessage sendMessage = new SendMessage();
 
-        sendMessage.execute(socketControl,intent.getStringExtra("message"));
+        sendMessage.execute("p2pclient",socketControl, intent.getStringExtra("message"),intent.getStringExtra("fileType"),intent.getStringExtra("fileUri"));
+        //sendMessage.execute(socketControl,intent.getStringExtra("message"), "p2pclient");
         //socketControl.write(intent.getStringExtra("message"));
 
 

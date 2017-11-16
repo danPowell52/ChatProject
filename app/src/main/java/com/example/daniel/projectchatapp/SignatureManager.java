@@ -112,16 +112,16 @@ public class SignatureManager {
             return verifies;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            System.out.println("fuck boy 2 "+ e);
+            System.out.println("verification error  "+ e);
         //}  catch (InvalidKeySpecException e) {
         //    e.printStackTrace();
         //    System.out.println("fuck boy 3 "+ e);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
-            System.out.println("fuck boy 4 "+ e);
+            System.out.println("verification error 4 "+ e);
         } catch (SignatureException e) {
             e.printStackTrace();
-            System.out.println("fuck boy 5 "+ e);
+            System.out.println("verification error 5 "+ e);
         }
         return false;
     }

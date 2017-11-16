@@ -2,11 +2,17 @@ package com.example.daniel.projectchatapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,13 +29,16 @@ import java.net.Socket;
 
 public class ClientThread extends Thread {
     private int port = 8888;
+    String address;
+    String username;
+    String recipient;
     OutputStream outputStream;
     InputStream inputStream;
     ObjectOutputStream objectOutputStream;
     ObjectInputStream objectInputStream;
     EncryptionManager encryptionManager;
     SignatureManager signatureManager;
-    KeyMessage newKeys;
+    com.mycompany.chatappsecurity.KeyMessage newKeys;
     Boolean running = true;
     Socket socket;
     Intent broadcastIntent;
@@ -46,7 +55,7 @@ public class ClientThread extends Thread {
         socket = new Socket();
         try {
             Log.d("Payara", "before connect");
-            socket.connect((new InetSocketAddress("192.168.49.1", port)), 500);
+            socket.connect((new InetSocketAddress(address, port)), 500);
             Log.d("Payara", "after connect");
             //listen for messages
             outputStream = socket.getOutputStream();
@@ -84,20 +93,40 @@ public class ClientThread extends Thread {
                 while((object = objectInputStream.readObject()) != null){
 
                     if (securitySet.equals(false)){
-                        newKeys = (KeyMessage)object;
+                        newKeys = (com.mycompany.chatappsecurity.KeyMessage)object;
                         encryptionManager.generateKey(new BigInteger(newKeys.getP()), new BigInteger(newKeys.getG()));
                         encryptionManager.genSecret(newKeys.getDHkey());
-                        KeyMessage keyMessage = new KeyMessage();
+                        com.mycompany.chatappsecurity.KeyMessage keyMessage = new com.mycompany.chatappsecurity.KeyMessage();
                         keyMessage.setDHkey(encryptionManager.getPub().getEncoded());
                         keyMessage.setRSAkey(signatureManager.getPublicKey().getEncoded());
+                        keyMessage.setUsername(username);
                         signatureManager.setReceivedPublic(newKeys.getRSAkey());
                         write(keyMessage);
                         securitySet = true;
                         Log.d("Payara", "security set");
                     } else {
-                        Message newMessage = (Message)object;
+                        com.mycompany.chatappsecurity.Message newMessage = (com.mycompany.chatappsecurity.Message)object;
                         if(signatureManager.verifySig(newMessage.getEncryptedMessage(), newMessage.getSignature())){
+                            Log.d("Payara", "message is "+newMessage.getEncryptedMessage().toString());
                             newMessage.setMessage(encryptionManager.receiveMessage(newMessage.getEncryptedMessage()));
+                            //if the message has a file
+                            if (newMessage.getMessage().equals("hasFile")){
+                                System.out.println("file found");
+                                final File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                                         context.getPackageName() + "wifip2pshared-" + System.currentTimeMillis()
+                                        + "."+newMessage.getFileType());
+                                Intent intent =
+                                        new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,Uri.fromFile(f) );
+                                //intent.setData(Uri.fromFile(file));
+                                context.sendBroadcast(intent);
+                                try {
+                                    System.out.println("received file is " + newMessage.getFile());
+                                    InputStream myInputStream = new ByteArrayInputStream(newMessage.getFile());
+                                    copyFile(myInputStream, new FileOutputStream(f));
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                             broadcastIntent = new Intent().putExtra("message",newMessage.getMessage());
                             broadcastIntent.setAction("chatapp.received.message");
                             context.sendBroadcast(broadcastIntent);
@@ -165,7 +194,44 @@ public class ClientThread extends Thread {
 
     }
 
-    public void write(KeyMessage keys){
+
+    public void write(String fileType, String file){
+        Log.d("Payara","Send file called");
+        if(outputStream ==null|| inputStream ==null){
+            Log.d("Payara","NULLS FOUND");
+            return;
+        } else {
+            Log.d("Payara","file uri "+ file);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            try {
+                InputStream fileStream = context.getContentResolver().openInputStream(Uri.parse(file));
+                int line;
+                byte[] bytes = new byte[16384];
+                while ((line = fileStream.read()) != -1) {
+                    buffer.write(line);
+                }
+            }catch (IOException e) {
+                e.printStackTrace();
+            }
+            com.mycompany.chatappsecurity.Message sendMessage = new com.mycompany.chatappsecurity.Message();
+            sendMessage.setEncryptedMessage(encryptionManager.sendMessage("hasFile".getBytes()));
+            sendMessage.setSignature(signatureManager.generateSig(sendMessage.getEncryptedMessage()));
+            sendMessage.setFileType(fileType);
+            sendMessage.setfile(buffer.toByteArray());
+            Log.d("Payara","get file is " + sendMessage.getFile());
+            sendMessage.setHasFile(true);
+            try {
+                objectOutputStream.writeObject(sendMessage);
+                objectOutputStream.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+
+    public void write(com.mycompany.chatappsecurity.KeyMessage keys){
 
 
         try {
@@ -194,9 +260,12 @@ public class ClientThread extends Thread {
                 }
                 InputStream inputStream = new ByteArrayInputStream(message.getBytes());
                 byte byteVar[] = new byte[1024];
-                Message sendMessage = new Message();
+                com.mycompany.chatappsecurity.Message sendMessage = new com.mycompany.chatappsecurity.Message();
                 sendMessage.setEncryptedMessage(encryptionManager.sendMessage(message.getBytes()));
+                Log.d("Payara", "message is "+sendMessage.getEncryptedMessage());
                 sendMessage.setSignature(signatureManager.generateSig(sendMessage.getEncryptedMessage()));
+                sendMessage.setRecipientUsername(recipient);
+                sendMessage.setSenderUsername(username);
                 objectOutputStream.writeObject(sendMessage);
                 objectOutputStream.flush();
                 /**
@@ -217,4 +286,35 @@ public class ClientThread extends Thread {
         running = false;
 
     }
+
+    public static boolean copyFile(InputStream inputStream, OutputStream out) {
+        byte buf[] = new byte[1024];
+        int len;
+        try {
+            while ((len = inputStream.read()) != -1) {
+                out.write(len);
+
+            }
+            out.close();
+            inputStream.close();
+        } catch (IOException e) {
+            Log.d("MainActivity", e.toString());
+            return false;
+        }
+        return true;
+    }
+
+    public void setPort(int port){
+        this.port = port;
+    }
+
+    public void setAddress(String address){
+        this.address = address;
+    }
+
+    public void setUsername(String username){
+        this.username = username;
+    }
+
+    public void setRecipient(String recipient){this.recipient = recipient;}
 }

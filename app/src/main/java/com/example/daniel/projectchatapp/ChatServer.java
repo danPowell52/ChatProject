@@ -43,7 +43,10 @@ public class ChatServer extends Service {
 
         Log.d("Payara","Server Write");
         if (socketControl.getConnected()){
-            socketControl.write(intent.getStringExtra("message"));
+            //socketControl.write(intent.getStringExtra("message"));
+            SendMessage sendMessage = new SendMessage();
+
+            sendMessage.execute("p2pserver",socketControl, intent.getStringExtra("message"),intent.getStringExtra("fileType"),intent.getStringExtra("fileUri"));
 
         }
 

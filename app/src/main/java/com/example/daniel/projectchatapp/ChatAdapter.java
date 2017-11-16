@@ -39,12 +39,12 @@ public class ChatAdapter extends ArrayAdapter {
         View newView = convertView;
         //format for row of list
         if (messages.get(position).getIsMine()){
-            newView = inflater.inflate(R.layout.incoming_bubble, null);
+            newView = inflater.inflate(R.layout.outgoing_bubble, null);
             LinearLayout parent_layout = (LinearLayout) newView
                     .findViewById(R.id.bubble_layout_parent);
             parent_layout.setGravity(Gravity.RIGHT);
         } else {
-            newView = inflater.inflate(R.layout.outgoing_bubble, null);
+            newView = inflater.inflate(R.layout.incoming_bubble, null);
         }
 
         TextView text = (TextView) newView.findViewById(R.id.message_text);

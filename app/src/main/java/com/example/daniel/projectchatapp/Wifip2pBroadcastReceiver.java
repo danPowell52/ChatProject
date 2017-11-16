@@ -128,8 +128,8 @@ public class Wifip2pBroadcastReceiver extends BroadcastReceiver {
         } else if (action == "chatapp.received.message"){
             Log.d("Payara","intent message received");
             //less coupled way to work
-            ChatFragment hello = (ChatFragment)mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
-            hello.receiveMessage(intent.getStringExtra("message"));
+            ChatFragment fragment = (ChatFragment)mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
+            fragment.receiveMessage(intent.getStringExtra("message"));
         }
 
     }
